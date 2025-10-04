@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
+
 const AuthContext = createContext()
 
 export function AuthProvider({ children }) {
@@ -19,14 +21,24 @@ export function AuthProvider({ children }) {
     setIsLoading(false)
   }, [])
 
-  const login = (userData) => {
-    const userWithId = {
-      ...userData,
-      id: Date.now().toString(),
-      loginTime: new Date().toISOString()
+  const login = async (userData) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/users/upsert`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: userData.name, email: userData.email, color: userData.color })
+      })
+      const saved = await res.json()
+      const userWithId = {
+        ...userData,
+        id: saved._id,
+        loginTime: new Date().toISOString()
+      }
+      setUser(userWithId)
+      localStorage.setItem('collabUser', JSON.stringify(userWithId))
+    } catch (e) {
+      console.error('Login/upsert failed', e)
     }
-    setUser(userWithId)
-    localStorage.setItem('collabUser', JSON.stringify(userWithId))
   }
 
   const logout = () => {

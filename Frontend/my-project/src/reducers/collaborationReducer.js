@@ -10,7 +10,8 @@ export const ACTIONS = {
   ADD_COLLABORATOR: 'ADD_COLLABORATOR',
   REMOVE_COLLABORATOR: 'REMOVE_COLLABORATOR',
   TOGGLE_LAYER_LOCK: 'TOGGLE_LAYER_LOCK',
-  SET_IS_DRAWING: 'SET_IS_DRAWING'
+  SET_IS_DRAWING: 'SET_IS_DRAWING',
+  SET_USERS: 'SET_USERS'
 }
 
 export const initialState = {
@@ -81,6 +82,8 @@ export function collaborationReducer(state, action) {
       return { ...state, isLayerLocked: !state.isLayerLocked }
     case ACTIONS.SET_IS_DRAWING:
       return { ...state, isDrawing: action.payload }
+    case ACTIONS.SET_USERS:
+      return { ...state, users: action.payload }
     default:
       return state
   }

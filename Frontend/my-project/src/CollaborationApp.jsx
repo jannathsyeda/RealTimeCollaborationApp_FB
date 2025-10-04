@@ -4,11 +4,11 @@ import DrawingCanvas from './components/DrawingCanvas.jsx'
 import UsersList from './components/UsersList.jsx'
 import StatusBar from './components/StatusBar.jsx'
 import Login from './components/Login.jsx'
-import { ACTIONS, CollaborationProvider, useCollaboration } from './context/CollaborationContext.jsx'
+import { ACTIONS, useCollaboration } from './context/CollaborationContext.jsx'
 import {  useAuth } from './context/AuthContext.jsx'
 
 export default function CollaborationShell() {
-  const { state, dispatch } = useCollaboration()
+  const { state, dispatch, api } = useCollaboration()
   const { isAuthenticated, isLoading} = useAuth()
 
 
@@ -56,6 +56,7 @@ export default function CollaborationShell() {
             y: Math.max(0, Math.min(550, user.cursor.y + (Math.random() - 0.5) * 60))
           }
           dispatch({ type: ACTIONS.UPDATE_USER_CURSOR, payload: { userId: user.id, position: newPosition } })
+          api.updateCursor({ id: user.id, cursor: newPosition })
         }
       })
     }, 3000)

@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import { Users, Share2, X, Copy, Check, Mail } from 'lucide-react'
 import { useCollaboration, ACTIONS } from '../context/CollaborationContext.jsx'
 
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
+
 export default function UsersList() {
   const { state, dispatch } = useCollaboration()
   const activeUsers = state.users.filter(user => user.isActive)
@@ -12,25 +14,24 @@ export default function UsersList() {
 
   const handleInviteUser = async () => {
     if (!inviteEmail.trim()) return
-    
     setIsInviting(true)
-    
-    // Simulate sending invite
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
-    const newCollaborator = {
-      id: Date.now().toString(),
-      name: inviteEmail.split('@')[0],
-      email: inviteEmail,
-      color: `#${Math.floor(Math.random()*16777215).toString(16)}`,
-      isActive: false,
-      isOwner: false
+    try {
+      const upsertRes = await fetch(`${API_BASE}/api/users/upsert`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: inviteEmail, name: inviteEmail.split('@')[0] })
+      })
+      const user = await upsertRes.json()
+      await fetch(`${API_BASE}/api/users/boards/default/add`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user._id })
+      })
+      setInviteEmail('')
+      setShowInviteModal(false)
+    } finally {
+      setIsInviting(false)
     }
-    
-    dispatch({ type: ACTIONS.ADD_COLLABORATOR, payload: newCollaborator })
-    setInviteEmail('')
-    setIsInviting(false)
-    setShowInviteModal(false)
   }
 
   const handleCopyLink = () => {

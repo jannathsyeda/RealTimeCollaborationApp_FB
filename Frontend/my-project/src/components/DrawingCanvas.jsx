@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { ACTIONS, useCollaboration } from '../context/CollaborationContext.jsx'
 
 export default function DrawingCanvas() {
-  const { state, dispatch } = useCollaboration()
+  const { state, dispatch, api } = useCollaboration()
   const canvasRef = useRef(null)
   const [isDrawing, setIsDrawing] = useState(false)
   const [currentStroke, setCurrentStroke] = useState(null)
@@ -62,6 +62,7 @@ export default function DrawingCanvas() {
     }
     setCurrentStroke(newStroke)
     dispatch({ type: ACTIONS.ADD_STROKE, payload: newStroke })
+    api.emitStroke(newStroke)
     dispatch({ type: ACTIONS.SET_IS_DRAWING, payload: true })
   }
 

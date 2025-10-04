@@ -5,7 +5,7 @@ import UserProfile from './UserProfile.jsx'
 import CollaborationSettings from './CollaborationSettings.jsx'
 
 export default function Toolbar() {
-  const { state, dispatch } = useCollaboration()
+  const { state, dispatch, api } = useCollaboration()
   const [showCollaborationSettings, setShowCollaborationSettings] = useState(false)
 
   const tools = [
@@ -91,7 +91,7 @@ export default function Toolbar() {
       </div>
 
       <button
-        onClick={() => dispatch({ type: ACTIONS.CLEAR_CANVAS })}
+        onClick={() => { dispatch({ type: ACTIONS.CLEAR_CANVAS }); api.clearCanvas() }}
         className="flex items-center gap-2 px-4 py-2 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 rounded-xl transition-all duration-200 hover:scale-105"
       >
         <Trash2 className="w-4 h-4" />
@@ -99,7 +99,7 @@ export default function Toolbar() {
       </button>
 
       <button
-        onClick={() => dispatch({ type: ACTIONS.TOGGLE_LAYER_LOCK })}
+        onClick={() => { api.setLocked(!state.isLayerLocked); dispatch({ type: ACTIONS.TOGGLE_LAYER_LOCK }) }}
         className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-200 hover:scale-105 ${
           state.isLayerLocked
             ? 'bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400'
