@@ -1,13 +1,11 @@
-import Page from "./Page"
-
+import Page from "./Page";
 
 function App() {
-
   return (
-   <>
-<Page/>
-   </>
-  )
+    <>
+      <Page />
+    </>
+  );
 }
 
-export default App
+export default App;

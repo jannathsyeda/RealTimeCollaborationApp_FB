@@ -5,22 +5,63 @@ const Board=require('../models/Board')
 const router=express.Router()
 
 // Upsert user by email
-router.post('/upsert', async (req,res)=>{
-  try{
-    const { name, email, color }=req.body
-    if(!email) return res.status(400).json({ message:'email is required' })
-    const update={}
-    if(name) update.name=name
-    if(color) update.color=color
-    const user=await User.findOneAndUpdate(
-      { email },
-      { $set: update, $setOnInsert: { name: name||email.split('@')[0], email, color: color||'#3b82f6' } },
-      { upsert:true, new:true }
-    )
+router.post('/upsert', async (req, res) => {
+  try {
+    const { name, email, color, settings } = req.body
+    
+    // Validate email
+    if (!email || !email.trim()) {
+      return res.status(400).json({ message: 'Email is required' })
+    }
+
+    const normalizedEmail = email.toLowerCase().trim()
+    
+    // Check if user exists
+    let user = await User.findOne({ email: normalizedEmail })
+    
+    if (user) {
+      // UPDATE existing user
+      if (name) user.name = name.trim()
+      if (color) user.color = color
+      if (settings) user.settings = { ...user.settings, ...settings }
+      user.lastActive = new Date()
+      
+      await user.save()
+    } else {
+      // CREATE new user
+      user = new User({
+        name: name?.trim() || email.split('@')[0],
+        email: normalizedEmail,
+        color: color || '#3b82f6',
+        settings: settings || {}
+      })
+      
+      await user.save()
+    }
+
     res.json(user)
-  }catch(err){
-    console.error(err)
-    res.status(500).json({ message:'server error' })
+  } catch (err) {
+    console.error('Upsert error:', err)
+    
+    // Handle duplicate key error
+    if (err.code === 11000) {
+      return res.status(400).json({ 
+        message: 'User with this email already exists' 
+      })
+    }
+    
+    // Handle validation errors
+    if (err.name === 'ValidationError') {
+      return res.status(400).json({ 
+        message: 'Validation error',
+        errors: Object.values(err.errors).map(e => e.message)
+      })
+    }
+    
+    res.status(500).json({ 
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    })
   }
 })
 
