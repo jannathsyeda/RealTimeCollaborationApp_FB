@@ -100,7 +100,7 @@ export default function DrawingCanvas() {
   const isDrawingBlocked = state.isLayerLocked
   
   return (
- <div className="relative">
+ <div className="relative" style={{ position: "relative", zIndex: "1" }}>
   <canvas
     ref={canvasRef}
     width={900}

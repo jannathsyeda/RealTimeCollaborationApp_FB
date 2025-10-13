@@ -19,7 +19,7 @@ export default function Toolbar() {
   ]
 
   return (
-  <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-xl border-b border-white/20 dark:border-gray-700/30 p-4 relative z-20">
+<div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-xl border-b border-white/20 dark:border-gray-700/30 p-4 relative z-10">
   <div className="flex items-center justify-between flex-wrap gap-4 max-w-7xl mx-auto">
     <div className="flex items-center gap-6">
       <div className="flex items-center gap-3">

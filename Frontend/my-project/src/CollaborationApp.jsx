@@ -80,13 +80,16 @@ export default function CollaborationShell() {
   
   <Toolbar />
   
-  <div className="flex-1 flex items-center justify-center p-6 gap-6">
+  <div className="flex-1 flex items-center justify-center p-6 gap-6 " >
     <div className="hidden lg:block flex-shrink-0">
       <UsersList />
     </div>
-    <div className="flex-1 flex justify-center">
-      <DrawingCanvas />
-    </div>
+   <div className="flex-1 flex justify-center relative z-0 overflow-visible">
+  <div className="relative z-0 pointer-events-auto">
+    <DrawingCanvas />
+  </div>
+</div>
+
   </div>
   
   {/* Mobile UsersList - positioned at bottom */}

@@ -42,7 +42,7 @@ export default function UsersList() {
   }
 
   return (
-    <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-md rounded-2xl shadow-xl p-4 w-[280px] border border-white/20 dark:border-gray-700/30 relative z-10">
+    <div style={{ position: "relative", zIndex: "10" }} className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-md rounded-2xl shadow-xl p-4 w-[280px] border border-white/20 dark:border-gray-700/30 relative z-10">
       <div className="flex items-center gap-2 mb-4">
         <Users className="w-5 h-5 text-gray-600 dark:text-gray-400" />
         <h3 className="font-bold text-gray-800 dark:text-gray-200">Collaborators</h3>
