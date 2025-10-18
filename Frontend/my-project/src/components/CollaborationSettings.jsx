@@ -61,7 +61,7 @@ export default function CollaborationSettings({ isOpen, onClose }) {
   };
 
   return (
-<div className="fixed inset-0 z-50 flex items-center justify-center p-40 mt-15">
+<div className="fixed inset-0 z-50 flex items-center justify-center p-40 mt-30">
       <div 
         className="fixed inset-0 bg-black/50 backdrop-blur-sm" 
         onClick={onClose}
