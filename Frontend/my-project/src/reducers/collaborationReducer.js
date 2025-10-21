@@ -20,22 +20,14 @@ export const initialState = {
   currentSize: 3,
   strokes: [],
   collaborationEnabled: false,
-  collaborationMode: 'invite-only', // 'invite-only', 'open', 'view-only'
+  collaborationMode: 'invite-only',
   isLayerLocked: false,
-  collaborators: [
-    { id: 'user1', name: 'You', color: '#3b82f6', isActive: true, isOwner: true, cursor: { x: 0, y: 0 } }
-  ],
-  users: [
-    { id: 'user1', name: 'You', color: '#3b82f6', isActive: true, cursor: { x: 0, y: 0 } },
-    { id: 'user2', name: 'Alice', color: '#10b981', isActive: true, cursor: { x: 100, y: 100 } },
-    { id: 'user3', name: 'Bob', color: '#f59e0b', isActive: false, cursor: { x: 200, y: 200 } },
-    { id: 'user4', name: 'Carol', color: '#8b5cf6', isActive: true, cursor: { x: 300, y: 300 } }
-  ],
+  collaborators: [],
+  users: [],
   pendingInvites: [],
   isDrawing: false
 }
 
-// Collaboration modes
 export const COLLABORATION_MODES = {
   'invite-only': { label: 'Invite Only', description: 'Only invited users can edit' },
   'open': { label: 'Open Access', description: 'Anyone with link can edit' },
@@ -58,7 +50,7 @@ export function collaborationReducer(state, action) {
       return {
         ...state,
         users: state.users.map(user =>
-          user.id === action.payload.userId
+          user.socketId === action.payload.socketId
             ? { ...user, cursor: action.payload.position }
             : user
         )

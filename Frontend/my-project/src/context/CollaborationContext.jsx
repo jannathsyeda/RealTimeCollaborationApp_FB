@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useReducer, useRef } from 'react'
+import React, { createContext, useContext, useEffect, useReducer, useRef, useState } from 'react'
 import { ACTIONS, initialState, collaborationReducer, COLLABORATION_MODES } from '../reducers/collaborationReducer.js'
 import { useAuth } from './AuthContext.jsx'
 import io from 'socket.io-client'
@@ -13,27 +13,73 @@ export function CollaborationProvider({ children }) {
   const socketRef = useRef(null)
   const boardSlugRef = useRef('default')
   const { user } = useAuth()
+  const [onlineUsers, setOnlineUsers] = useState([])
 
+  // Socket connection with user authentication
   useEffect(() => {
-    // Initialize socket connection (allow fallback polling)
-    const socket = io(SOCKET_URL, { transports: ['websocket', 'polling'] })
+    if (!user) return
+
+    const socket = io(SOCKET_URL, { 
+      transports: ['websocket', 'polling'],
+      reconnection: true
+    })
+    
     socketRef.current = socket
-    socket.emit('join', boardSlugRef.current)
+
+    socket.on('connect', () => {
+      console.log('Socket connected:', socket.id)
+      // Join room with user info
+      socket.emit('join', { 
+        room: boardSlugRef.current,
+        userId: user.id,
+        userName: user.name,
+        userColor: user.color || '#3b82f6'
+      })
+    })
+
+    // Receive initial users list
+    socket.on('users:list', (users) => {
+      console.log('Received users list:', users)
+      setOnlineUsers(users)
+      dispatch({ type: ACTIONS.SET_USERS, payload: users })
+    })
+
+    // New user joined
+    socket.on('user:joined', (newUser) => {
+      console.log('User joined:', newUser)
+      setOnlineUsers(prev => {
+        const exists = prev.find(u => u.socketId === newUser.socketId)
+        if (exists) return prev
+        return [...prev, { ...newUser, isActive: true }]
+      })
+    })
+
+    // User left
+    socket.on('user:left', (socketId) => {
+      console.log('User left:', socketId)
+      setOnlineUsers(prev => prev.filter(u => u.socketId !== socketId))
+    })
 
     socket.on('stroke:added', (stroke) => {
       dispatch({ type: ACTIONS.ADD_STROKE, payload: stroke })
     })
+
     socket.on('canvas:cleared', () => {
       dispatch({ type: ACTIONS.CLEAR_CANVAS })
     })
-    socket.on('cursor:updated', (user) => {
-      dispatch({ type: ACTIONS.UPDATE_USER_CURSOR, payload: { userId: user.id, position: user.cursor } })
+
+    socket.on('cursor:updated', ({ socketId, cursor }) => {
+      setOnlineUsers(prev => prev.map(u => 
+        u.socketId === socketId ? { ...u, cursor } : u
+      ))
     })
+
     socket.on('layer:locked', (locked) => {
       if (locked !== state.isLayerLocked) {
         dispatch({ type: ACTIONS.TOGGLE_LAYER_LOCK })
       }
     })
+
     socket.on('mode:updated', (mode) => {
       dispatch({ type: ACTIONS.SET_COLLABORATION_MODE, payload: mode })
     })
@@ -41,7 +87,14 @@ export function CollaborationProvider({ children }) {
     return () => {
       socket.disconnect()
     }
-  }, [])
+  }, [user])
+
+  // Update state with online users
+  useEffect(() => {
+    if (onlineUsers.length > 0) {
+      dispatch({ type: ACTIONS.SET_USERS, payload: onlineUsers })
+    }
+  }, [onlineUsers])
 
   // Load board from backend on mount
   useEffect(() => {
@@ -58,32 +111,21 @@ export function CollaborationProvider({ children }) {
           return load()
         }
         const data = await res.json()
+        
+        // Load strokes
         if (Array.isArray(data.strokes)) {
-          // Replace local strokes with server data
+          dispatch({ type: ACTIONS.CLEAR_CANVAS })
           data.strokes.forEach(stroke => {
             dispatch({ type: ACTIONS.ADD_STROKE, payload: stroke })
           })
         }
-        if (typeof data.isLayerLocked === 'boolean' && data.isLayerLocked !== initialState.isLayerLocked) {
-          if (data.isLayerLocked !== state.isLayerLocked) {
-            dispatch({ type: ACTIONS.TOGGLE_LAYER_LOCK })
-          }
+        
+        // Load settings
+        if (typeof data.isLayerLocked === 'boolean' && data.isLayerLocked !== state.isLayerLocked) {
+          dispatch({ type: ACTIONS.TOGGLE_LAYER_LOCK })
         }
         if (data.collaborationMode) {
           dispatch({ type: ACTIONS.SET_COLLABORATION_MODE, payload: data.collaborationMode })
-        }
-        // Load board users
-        const usersRes = await fetch(`${API_BASE}/api/users/boards/${slug}`)
-        if (usersRes.ok) {
-          const users = await usersRes.json()
-          const mapped = users.map(u => ({ id: u._id, name: u.name, color: u.color, isActive: true, cursor: { x: 0, y: 0 } }))
-          if (user) {
-            const me = { id: user.id, name: user.name, color: user.color || '#3b82f6', isActive: true, cursor: { x: 0, y: 0 } }
-            const withoutDup = mapped.filter(m => m.id !== me.id)
-            dispatch({ type: ACTIONS.SET_USERS, payload: [me, ...withoutDup] })
-          } else {
-            dispatch({ type: ACTIONS.SET_USERS, payload: mapped })
-          }
         }
       } catch (e) {
         console.error('Failed to load board', e)
@@ -92,7 +134,7 @@ export function CollaborationProvider({ children }) {
     load()
   }, [])
 
-  // Add current user to board collaborators when available
+  // Add current user to board collaborators
   useEffect(() => {
     const add = async () => {
       if (!user) return
@@ -102,7 +144,9 @@ export function CollaborationProvider({ children }) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId: user.id })
         })
-      } catch {}
+      } catch (e) {
+        console.error('Failed to add user to board', e)
+      }
     }
     add()
   }, [user])
@@ -124,8 +168,8 @@ export function CollaborationProvider({ children }) {
         await fetch(`${API_BASE}/api/boards/${boardSlugRef.current}/clear`, { method: 'POST' })
       } catch {}
     },
-    updateCursor: (user) => {
-      socketRef.current?.emit('cursor:update', { room: boardSlugRef.current, user })
+    updateCursor: (cursor) => {
+      socketRef.current?.emit('cursor:update', { room: boardSlugRef.current, cursor })
     },
     setLocked: async (locked) => {
       socketRef.current?.emit('layer:lock', { room: boardSlugRef.current, locked })
@@ -148,8 +192,9 @@ export function CollaborationProvider({ children }) {
       } catch {}
     }
   }
+  
   return (
-    <CollaborationContext.Provider value={{ state, dispatch, api }}>
+    <CollaborationContext.Provider value={{ state, dispatch, api, onlineUsers }}>
       {children}
     </CollaborationContext.Provider>
   )
@@ -163,8 +208,4 @@ export function useCollaboration() {
   return context
 }
 
-// Re-export ACTIONS and COLLABORATION_MODES for convenience
 export { ACTIONS, COLLABORATION_MODES }
-
-
-
