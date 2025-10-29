@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
-
+const API_BASE = import.meta.env.VITE_API_BASE || 'https://realtimecollaborationapp-fb.onrender.com'
 const AuthContext = createContext()
 
 export function AuthProvider({ children }) {

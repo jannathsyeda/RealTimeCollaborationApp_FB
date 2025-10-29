@@ -3,7 +3,7 @@ import { ACTIONS, initialState, collaborationReducer, COLLABORATION_MODES } from
 import { useAuth } from './AuthContext.jsx'
 import io from 'socket.io-client'
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
+const API_BASE = import.meta.env.VITE_API_BASE || 'https://realtimecollaborationapp-fb.onrender.com'
 const SOCKET_URL = API_BASE
 
 const CollaborationContext = createContext()
