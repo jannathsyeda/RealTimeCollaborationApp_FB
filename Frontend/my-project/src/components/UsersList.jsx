@@ -42,90 +42,93 @@ export default function UsersList() {
   }
 
   return (
-    <div style={{ position: "relative", zIndex: "10" }} className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-md rounded-2xl shadow-xl p-4 w-[280px] border border-white/20 dark:border-gray-700/30 relative z-10">
-      <div className="flex items-center gap-2 mb-4">
-        <Users className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-        <h3 className="font-bold text-gray-800 dark:text-gray-200">Collaborators</h3>
-        <span className="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs px-2 py-1 rounded-full font-medium">
+    <div 
+      style={{ position: "relative", zIndex:0 }} 
+      className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-md rounded-xl md:rounded-2xl shadow-xl p-3 md:p-4 w-full md:w-[280px] border border-white/20 dark:border-gray-700/30 relative z-10 mt-2 md:mt-0 md:ml-6"
+    >
+      <div className="flex items-center gap-2 mb-3 md:mb-4">
+        <Users className="w-4 h-4 md:w-5 md:h-5 text-gray-600 dark:text-gray-400" />
+        <h3 className="font-bold text-sm md:text-base text-gray-800 dark:text-gray-200">Collaborators</h3>
+        <span className="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs px-2 py-0.5 md:py-1 rounded-full font-medium">
           {activeUsers.length} online
         </span>
       </div>
 
-      <div className="space-y-2 max-h-48 overflow-y-auto">
+      <div className="space-y-1.5 md:space-y-2 max-h-40 md:max-h-48 overflow-y-auto">
         {activeUsers.map(user => (
-          <div key={user.id} className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 group">
-            <div className="relative">
-              <div className="w-5 h-5 rounded-full border-2 border-white dark:border-gray-300 shadow-lg" style={{ backgroundColor: user.color }} />
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border border-white dark:border-gray-800 animate-pulse" />
+          <div key={user.id} className="flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-lg md:rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 group">
+            <div className="relative flex-shrink-0">
+              <div className="w-4 h-4 md:w-5 md:h-5 rounded-full border-2 border-white dark:border-gray-300 shadow-lg" style={{ backgroundColor: user.color }} />
+              <div className="absolute -top-0.5 -right-0.5 md:-top-1 md:-right-1 w-2 h-2 md:w-3 md:h-3 bg-green-400 rounded-full border border-white dark:border-gray-800 animate-pulse" />
             </div>
-            <div className="flex-1">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100">
+            <div className="flex-1 min-w-0">
+              <span className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 truncate block">
                 {user.name}
               </span>
               {user.id === 'user1' && (
-                <span className="ml-2 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-full">You</span>
+                <span className="ml-1 md:ml-2 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-1.5 md:px-2 py-0.5 rounded-full">You</span>
               )}
             </div>
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+            <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-green-400 rounded-full animate-pulse flex-shrink-0" />
           </div>
         ))}
 
         {state.users.filter(user => !user.isActive).map(user => (
-          <div key={user.id} className="flex items-center gap-3 p-3 rounded-xl opacity-50">
-            <div className="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600" style={{ backgroundColor: user.color }} />
-            <span className="text-sm text-gray-500 dark:text-gray-400">{user.name}</span>
-            <div className="w-2 h-2 bg-gray-300 dark:bg-gray-600 rounded-full" />
+          <div key={user.id} className="flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-lg md:rounded-xl opacity-50">
+            <div className="w-4 h-4 md:w-5 md:h-5 rounded-full border-2 border-gray-300 dark:border-gray-600 flex-shrink-0" style={{ backgroundColor: user.color }} />
+            <span className="text-xs md:text-sm text-gray-500 dark:text-gray-400 truncate flex-1 min-w-0">{user.name}</span>
+            <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-gray-300 dark:bg-gray-600 rounded-full flex-shrink-0" />
           </div>
         ))}
       </div>
 
-      <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-700 space-y-2">
+      <div className="mt-3 md:mt-4 pt-2 md:pt-3 border-t border-gray-200 dark:border-gray-700 space-y-1.5 md:space-y-2">
         <button 
           onClick={() => setShowInviteModal(true)}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-800/40 text-blue-600 dark:text-blue-400 rounded-xl transition-colors text-sm font-medium"
+          className="w-full flex items-center justify-center gap-2 px-3 py-1.5 md:py-2 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-800/40 text-blue-600 dark:text-blue-400 rounded-lg md:rounded-xl transition-colors text-xs md:text-sm font-medium"
         >
-          <Share2 className="w-4 h-4" />
+          <Share2 className="w-3 h-3 md:w-4 md:h-4" />
           Invite Others
         </button>
         
         <button 
           onClick={handleCopyLink}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-green-50 hover:bg-green-100 dark:bg-green-900/30 dark:hover:bg-green-800/40 text-green-600 dark:text-green-400 rounded-xl transition-colors text-sm font-medium"
+          className="w-full flex items-center justify-center gap-2 px-3 py-1.5 md:py-2 bg-green-50 hover:bg-green-100 dark:bg-green-900/30 dark:hover:bg-green-800/40 text-green-600 dark:text-green-400 rounded-lg md:rounded-xl transition-colors text-xs md:text-sm font-medium"
         >
-          {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+          {copied ? <Check className="w-3 h-3 md:w-4 md:h-4" /> : <Copy className="w-3 h-3 md:w-4 md:h-4" />}
           {copied ? 'Copied!' : 'Copy Link'}
         </button>
       </div>
 
       {/* Invite Modal */}
       {showInviteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-4">
           <div 
             className="fixed inset-0 bg-black/50 backdrop-blur-sm" 
             onClick={() => setShowInviteModal(false)}
           />
-          <div className="relative bg-white/95 dark:bg-gray-900/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 dark:border-gray-700/30 w-full max-w-md">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                  <Mail className="w-5 h-5 text-white" />
+          <div className="relative bg-white/95 dark:bg-gray-900/95 backdrop-blur-md rounded-xl md:rounded-2xl shadow-2xl border border-white/20 dark:border-gray-700/30 w-full max-w-md mx-4">
+            <div className="flex items-center justify-between p-4 md:p-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+                <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg md:rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Mail className="w-4 h-4 md:w-5 md:h-5 text-white" />
                 </div>
-                <div>
-                  <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200">Invite Collaborator</h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Send an invitation to join your board</p>
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-base md:text-xl font-bold text-gray-800 dark:text-gray-200 truncate">Invite Collaborator</h2>
+                  <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 truncate">Send an invitation to join</p>
                 </div>
               </div>
               <button
                 onClick={() => setShowInviteModal(false)}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                className="p-1.5 md:p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors flex-shrink-0 ml-2"
               >
-                <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                <X className="w-4 h-4 md:w-5 md:h-5 text-gray-600 dark:text-gray-400" />
               </button>
             </div>
 
-            <div className="p-6 space-y-4">
+            <div className="p-4 md:p-6 space-y-3 md:space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 md:mb-2">
                   Email Address
                 </label>
                 <input
@@ -133,13 +136,13 @@ export default function UsersList() {
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   placeholder="Enter email address"
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className="w-full px-3 py-2 md:px-4 md:py-3 text-sm md:text-base border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:placeholder-gray-400 rounded-lg md:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 />
               </div>
 
-              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4">
-                <h3 className="font-medium text-blue-800 dark:text-blue-300 mb-2">Invitation Details</h3>
-                <div className="text-sm text-blue-700 dark:text-blue-400 space-y-1">
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg md:rounded-xl p-3 md:p-4">
+                <h3 className="font-medium text-xs md:text-sm text-blue-800 dark:text-blue-300 mb-1.5 md:mb-2">Invitation Details</h3>
+                <div className="text-xs md:text-sm text-blue-700 dark:text-blue-400 space-y-0.5 md:space-y-1">
                   <p>• They'll receive an email invitation</p>
                   <p>• Access level: {state.collaborationMode === 'view-only' ? 'View Only' : 'Can Edit'}</p>
                   <p>• They can join immediately with the link</p>
@@ -147,26 +150,26 @@ export default function UsersList() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-end gap-2 md:gap-3 p-4 md:p-6 border-t border-gray-200 dark:border-gray-700">
               <button
                 onClick={() => setShowInviteModal(false)}
-                className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+                className="px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleInviteUser}
                 disabled={!inviteEmail.trim() || isInviting}
-                className="flex items-center gap-2 px-6 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl transition-colors font-medium"
+                className="flex items-center gap-1.5 md:gap-2 px-4 py-1.5 md:px-6 md:py-2 text-sm md:text-base bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg md:rounded-xl transition-colors font-medium"
               >
                 {isInviting ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <div className="w-3 h-3 md:w-4 md:h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     Sending...
                   </>
                 ) : (
                   <>
-                    <Mail className="w-4 h-4" />
+                    <Mail className="w-3 h-3 md:w-4 md:h-4" />
                     Send Invite
                   </>
                 )}

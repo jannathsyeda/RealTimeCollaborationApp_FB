@@ -18,7 +18,8 @@
     "start": "node backend/server.js",
     "server": "nodemon backend/server",
     "client": "npm run dev --prefix Frontend/my-project",
-    "dev": "concurrently \"npm run server\" \"npm run client\""
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+      "clean": "taskkill /IM node.exe /F || true"
   },
   "engines": {
     "node": ">=18.0.0"

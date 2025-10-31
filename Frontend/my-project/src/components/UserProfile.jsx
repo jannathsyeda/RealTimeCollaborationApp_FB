@@ -28,101 +28,101 @@ export default function UserProfile() {
   }
 
   return (
- <div className="relative">
-  <button
-    onClick={() => setIsOpen(!isOpen)}
-    className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/20 dark:hover:bg-gray-800/20 transition-all duration-200 group"
-  >
     <div className="relative">
-      <div
-        className="w-8 h-8 rounded-full border-2 border-white dark:border-gray-800 shadow-lg flex items-center justify-center text-white font-medium text-sm"
-        style={{ backgroundColor: user.color }}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 md:gap-3 p-1.5 md:p-2 rounded-lg md:rounded-xl hover:bg-white/20 dark:hover:bg-gray-800/20 transition-all duration-200 group"
       >
-        {user.name.charAt(0).toUpperCase()}
-      </div>
-      <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white dark:border-gray-800" />
-    </div>
-    <div className="text-left">
-      <div className="text-sm font-medium text-white dark:text-gray-100 group-hover:text-gray-100 dark:group-hover:text-gray-200">
-        {user.name}
-      </div>
-      <div className="text-xs text-white/70 dark:text-gray-400">
-        Online
-      </div>
-    </div>
-    <ChevronDown className={`w-4 h-4 text-white/70 dark:text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-  </button>
+        <div className="relative">
+          <div
+            className="w-7 h-7 md:w-8 md:h-8 rounded-full border-2 border-white dark:border-gray-800 shadow-lg flex items-center justify-center text-white font-medium text-xs md:text-sm"
+            style={{ backgroundColor: user.color }}
+          >
+            {user.name.charAt(0).toUpperCase()}
+          </div>
+          <div className="absolute -bottom-0.5 -right-0.5 md:-bottom-1 md:-right-1 w-2.5 h-2.5 md:w-3 md:h-3 bg-green-400 rounded-full border-2 border-white dark:border-gray-800" />
+        </div>
+        <div className="text-left hidden sm:block">
+          <div className="text-xs md:text-sm font-medium text-white dark:text-gray-100 group-hover:text-gray-100 dark:group-hover:text-gray-200">
+            {user.name}
+          </div>
+          <div className="text-xs text-white/70 dark:text-gray-400">
+            Online
+          </div>
+        </div>
+        <ChevronDown className={`w-3 h-3 md:w-4 md:h-4 text-white/70 dark:text-gray-400 transition-transform duration-200 hidden sm:block ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
 
-  {isOpen && (
-    <>
-      <div 
-        className="fixed inset-0 z-30" 
-        onClick={() => setIsOpen(false)}
+      {isOpen && (
+        <>
+          <div 
+            className="fixed inset-0 z-30" 
+            onClick={() => setIsOpen(false)}
+          />
+          <div className="absolute top-full right-0 mt-2 w-56 md:w-64 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md rounded-xl shadow-xl border border-white/20 dark:border-gray-700/30 z-40 overflow-hidden">
+            <div className="p-3 md:p-4 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-2 md:gap-3">
+                <div
+                  className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-gray-300 dark:border-gray-600 shadow-lg flex items-center justify-center text-white font-medium text-sm md:text-base"
+                  style={{ backgroundColor: user.color }}
+                >
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium text-sm md:text-base text-gray-800 dark:text-gray-200 truncate">{user.name}</div>
+                  <div className="text-xs md:text-sm text-gray-500 dark:text-gray-400 truncate">{user.email}</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-1.5 md:p-2">
+              <button 
+                onClick={handleProfileClick}
+                className="w-full flex items-center gap-2 md:gap-3 px-2.5 md:px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                <User className="w-4 h-4 flex-shrink-0" />
+                <span className="text-xs md:text-sm">Profile</span>
+              </button>
+              
+              <button 
+                onClick={handleSettingsClick}
+                className="w-full flex items-center gap-2 md:gap-3 px-2.5 md:px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                <SettingsIcon className="w-4 h-4 flex-shrink-0" />
+                <span className="text-xs md:text-sm">Settings</span>
+              </button>
+              
+              <div className="border-t border-gray-200 dark:border-gray-700 my-1.5 md:my-2" />
+              
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-2 md:gap-3 px-2.5 md:px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+              >
+                <LogOut className="w-4 h-4 flex-shrink-0" />
+                <span className="text-xs md:text-sm font-medium">Logout</span>
+              </button>
+            </div>
+
+            <div className="px-3 md:px-4 py-2 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                Joined: {new Date(user.loginTime).toLocaleDateString()}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Settings Modal */}
+      <Settings 
+        isOpen={showSettings} 
+        onClose={() => setShowSettings(false)} 
       />
-      <div className="absolute top-full right-0 mt-2 w-64 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md rounded-xl shadow-xl border border-white/20 dark:border-gray-700/30 z-40 overflow-hidden">
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-3">
-            <div
-              className="w-12 h-12 rounded-full border-2 border-gray-300 dark:border-gray-600 shadow-lg flex items-center justify-center text-white font-medium"
-              style={{ backgroundColor: user.color }}
-            >
-              {user.name.charAt(0).toUpperCase()}
-            </div>
-            <div>
-              <div className="font-medium text-gray-800 dark:text-gray-200">{user.name}</div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">{user.email}</div>
-            </div>
-          </div>
-        </div>
 
-        <div className="p-2">
-          <button 
-            onClick={handleProfileClick}
-            className="w-full flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-          >
-            <User className="w-4 h-4" />
-            <span className="text-sm">Profile</span>
-          </button>
-          
-          <button 
-            onClick={handleSettingsClick}
-            className="w-full flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-          >
-            <SettingsIcon className="w-4 h-4" />
-            <span className="text-sm">Settings</span>
-          </button>
-          
-          <div className="border-t border-gray-200 dark:border-gray-700 my-2" />
-          
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-            <span className="text-sm font-medium">Logout</span>
-          </button>
-        </div>
-
-        <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
-          <div className="text-xs text-gray-500 dark:text-gray-400">
-            Joined: {new Date(user.loginTime).toLocaleDateString()}
-          </div>
-        </div>
-      </div>
-    </>
-  )}
-
-  {/* Settings Modal */}
-  <Settings 
-    isOpen={showSettings} 
-    onClose={() => setShowSettings(false)} 
-  />
-
-  {/* Profile Modal */}
-  <Profile 
-    isOpen={showProfile} 
-    onClose={() => setShowProfile(false)} 
-  />
-</div>
+      {/* Profile Modal */}
+      <Profile 
+        isOpen={showProfile} 
+        onClose={() => setShowProfile(false)} 
+      />
+    </div>
   )
 }
