@@ -50,6 +50,7 @@ app.get('/health', (req, res) => {
 
 // Socket.IO
 const rooms = new Map()
+const onlineUsers = new Set()
 
 const io = new Server(server, {
   cors: {
@@ -61,6 +62,8 @@ const io = new Server(server, {
 
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id)
+  onlineUsers.add(socket.id)
+  io.emit('online:count', onlineUsers.size)
 
   socket.on('join', ({ room, userId, userName, userColor }) => {
     socket.join(room)
@@ -122,6 +125,8 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id)
+    onlineUsers.delete(socket.id)
+    io.emit('online:count', onlineUsers.size)
     
     rooms.forEach((roomUsers, room) => {
       if (roomUsers.has(socket.id)) {

@@ -6,6 +6,7 @@ const AuthContext = createContext()
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [onlineUsers, setOnlineUsers] = useState(0)
 
   // Check for existing session on mount
   useEffect(() => {
@@ -63,7 +64,9 @@ export function AuthProvider({ children }) {
     logout,
     updateUser,
     isLoading,
-    isAuthenticated: !!user
+    isAuthenticated: !!user,
+    onlineUsers,
+    setOnlineUsers
   }
 
   return (

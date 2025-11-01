@@ -12,8 +12,8 @@ export function CollaborationProvider({ children }) {
   const [state, dispatch] = useReducer(collaborationReducer, initialState)
   const socketRef = useRef(null)
   const boardSlugRef = useRef('default')
-  const { user } = useAuth()
-  const [onlineUsers, setOnlineUsers] = useState([])
+  const { user, setOnlineUsers } = useAuth()
+  const [onlineUsersInRoom, setOnlineUsersInRoom] = useState([])
 
   // Socket connection with user authentication
   useEffect(() => {
@@ -37,17 +37,23 @@ export function CollaborationProvider({ children }) {
       })
     })
 
+    // Listen for global online users count
+    socket.on('online:count', (count) => {
+      console.log('Online users count:', count)
+      setOnlineUsers(count)
+    })
+
     // Receive initial users list
     socket.on('users:list', (users) => {
       console.log('Received users list:', users)
-      setOnlineUsers(users)
+      setOnlineUsersInRoom(users)
       dispatch({ type: ACTIONS.SET_USERS, payload: users })
     })
 
     // New user joined
     socket.on('user:joined', (newUser) => {
       console.log('User joined:', newUser)
-      setOnlineUsers(prev => {
+      setOnlineUsersInRoom(prev => {
         const exists = prev.find(u => u.socketId === newUser.socketId)
         if (exists) return prev
         return [...prev, { ...newUser, isActive: true }]
@@ -57,7 +63,7 @@ export function CollaborationProvider({ children }) {
     // User left
     socket.on('user:left', (socketId) => {
       console.log('User left:', socketId)
-      setOnlineUsers(prev => prev.filter(u => u.socketId !== socketId))
+      setOnlineUsersInRoom(prev => prev.filter(u => u.socketId !== socketId))
     })
 
     socket.on('stroke:added', (stroke) => {
@@ -69,7 +75,7 @@ export function CollaborationProvider({ children }) {
     })
 
     socket.on('cursor:updated', ({ socketId, cursor }) => {
-      setOnlineUsers(prev => prev.map(u => 
+      setOnlineUsersInRoom(prev => prev.map(u => 
         u.socketId === socketId ? { ...u, cursor } : u
       ))
     })
@@ -87,14 +93,14 @@ export function CollaborationProvider({ children }) {
     return () => {
       socket.disconnect()
     }
-  }, [user])
+  }, [user, setOnlineUsers])
 
   // Update state with online users
   useEffect(() => {
-    if (onlineUsers.length > 0) {
-      dispatch({ type: ACTIONS.SET_USERS, payload: onlineUsers })
+    if (onlineUsersInRoom.length > 0) {
+      dispatch({ type: ACTIONS.SET_USERS, payload: onlineUsersInRoom })
     }
-  }, [onlineUsers])
+  }, [onlineUsersInRoom])
 
   // Load board from backend on mount
   useEffect(() => {
@@ -194,7 +200,7 @@ export function CollaborationProvider({ children }) {
   }
   
   return (
-    <CollaborationContext.Provider value={{ state, dispatch, api, onlineUsers }}>
+    <CollaborationContext.Provider value={{ state, dispatch, api, onlineUsers: onlineUsersInRoom }}>
       {children}
     </CollaborationContext.Provider>
   )
