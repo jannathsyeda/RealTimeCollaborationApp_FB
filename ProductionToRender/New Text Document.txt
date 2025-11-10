@@ -1,0 +1,93 @@
+Backend deploy------------
+
+Option 1: Manual Setup (Recommended - Easier)
+Instead of using a Blueprint, do a manual Web Service deployment:
+Steps:
+
+Go back to Render Dashboard: Click the Render logo or go to https://dashboard.render.com/
+Click "New +" button (top right) → Select "Web Service"
+Connect your GitHub repository:
+
+If not connected, click "Connect account"
+Find and select: jannathsyeda/RealTimeCollaborationApp_FB
+
+
+Configure the deployment:
+
+Name: colaborationApp (or any name you like)
+Region: Choose closest to you
+Branch: master
+Root Directory: Backend (since your server is in backend folder)
+Runtime: Node
+Build Command: npm install
+Start Command: node server.js
+Instance Type: Free
+
+
+Add Environment Variables:
+Click "Advanced" → Add Environment Variable:
+
+   MONGODB_URI = your_mongodb_connection_string
+   NODE_ENV = production
+   FRONTEND_URL = http://localhost:5173
+(You'll update FRONTEND_URL after deploying frontend to render)
+
+Click "Create Web Service"
+Wait for deployment - Takes 2-5 minutes
+
+
+
+
+
+-----------------------------
+
+
+
+
+Deploy Frontend on Render
+Step 1: Go to Render Dashboard
+
+Click "New +" → Select "Static Site"
+
+Step 2: Connect Repository
+
+Select your GitHub repo: jannathsyeda/RealTimeCollaborationApp_FB
+
+Step 3: Configure Frontend Deployment
+Fill in these settings:
+
+Name: colaborationapp-frontend (or any name)
+Branch: master
+Root Directory: Frontend/my-project
+Build Command: npm install && npm run build
+Publish Directory: dist
+
+Step 4: Add Environment Variable
+Click "Advanced" → Add Environment Variable:
+VITE_API_BASE = https://realtimecollaborationapp-fb.onrender.com
+```
+
+### Step 5: Deploy
+
+Click **"Create Static Site"**
+
+Wait 2-5 minutes for deployment.
+
+---
+
+## After Deployment
+
+### Update Backend CORS
+
+1. Go to your **backend service** on Render
+2. Click **"Environment"**
+3. Update `FRONTEND_URL`:
+```
+   FRONTEND_URL = https://colaborationapp-frontend.onrender.com
+(Use your actual frontend URL from Render)
+4. Save (will auto-redeploy backend)
+
+
+
+
+

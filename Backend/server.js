@@ -14,7 +14,7 @@ const server = http.createServer(app)
 // Updated CORS for production
 const allowedOrigins = [
   'http://localhost:5173',
-  process.env.FRONTEND_URL // Your Vercel frontend URL
+  process.env.FRONTEND_URL 
 ]
 
 app.use(cors({
