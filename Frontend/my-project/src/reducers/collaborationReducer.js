@@ -75,7 +75,19 @@ export function collaborationReducer(state, action) {
     case ACTIONS.SET_IS_DRAWING:
       return { ...state, isDrawing: action.payload }
     case ACTIONS.SET_USERS:
-      return { ...state, users: action.payload }
+      // ✅ FIX: Deduplicate users by userId before setting state
+      const userMap = new Map()
+      action.payload.forEach(user => {
+        const id = user.userId || user.id
+        if (!userMap.has(id)) {
+          userMap.set(id, { ...user, userId: id, id: id })
+        } else {
+          // Keep most recent data (merge)
+          const existing = userMap.get(id)
+          userMap.set(id, { ...existing, ...user, userId: id, id: id })
+        }
+      })
+      return { ...state, users: Array.from(userMap.values()) }
     default:
       return state
   }

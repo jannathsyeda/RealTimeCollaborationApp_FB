@@ -54,8 +54,21 @@ export function CollaborationProvider({ children }) {
     socket.on('user:joined', (newUser) => {
       console.log('User joined:', newUser)
       setOnlineUsersInRoom(prev => {
-        const exists = prev.find(u => u.socketId === newUser.socketId)
-        if (exists) return prev
+        // ✅ FIX: Check by userId instead of socketId to prevent duplicates
+        const existingUserIndex = prev.findIndex(u => u.userId === newUser.userId)
+        
+        if (existingUserIndex !== -1) {
+          // User already exists, update their socket and mark as active
+          const updated = [...prev]
+          updated[existingUserIndex] = { 
+            ...updated[existingUserIndex],
+            ...newUser, 
+            isActive: true 
+          }
+          return updated
+        }
+        
+        // New user, add to list
         return [...prev, { ...newUser, isActive: true }]
       })
     })
@@ -63,7 +76,19 @@ export function CollaborationProvider({ children }) {
     // User left
     socket.on('user:left', (socketId) => {
       console.log('User left:', socketId)
-      setOnlineUsersInRoom(prev => prev.filter(u => u.socketId !== socketId))
+      setOnlineUsersInRoom(prev => {
+        // ✅ FIX: Mark user as inactive instead of removing completely
+        // This way, if they have another tab open, they stay visible
+        return prev.map(u => 
+          u.socketId === socketId 
+            ? { ...u, isActive: false } 
+            : u
+        ).filter(u => {
+          // Only remove if this was their last connection
+          // (You might need to track multiple sockets per user for this to work perfectly)
+          return true // For now, keep all users
+        })
+      })
     })
 
     socket.on('stroke:added', (stroke) => {

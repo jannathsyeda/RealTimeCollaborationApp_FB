@@ -49,8 +49,9 @@ app.get('/health', (req, res) => {
 })
 
 // Socket.IO
-const rooms = new Map()
+const rooms = new Map() // room -> Map(userId -> {user data, sockets: Set})
 const onlineUsers = new Set()
+const socketToUser = new Map() // socketId -> {userId, room}
 
 const io = new Server(server, {
   cors: {
@@ -68,31 +69,65 @@ io.on('connection', (socket) => {
   socket.on('join', ({ room, userId, userName, userColor }) => {
     socket.join(room)
     
+    // Initialize room if doesn't exist
     if (!rooms.has(room)) {
       rooms.set(room, new Map())
     }
     
     const roomUsers = rooms.get(room)
-    roomUsers.set(socket.id, {
-      socketId: socket.id,
-      userId: userId,
-      name: userName,
-      color: userColor,
-      cursor: { x: 0, y: 0 }
-    })
     
-    const usersList = Array.from(roomUsers.values())
+    // ✅ FIX: Check if user already exists in room (by userId, not socketId)
+    if (roomUsers.has(userId)) {
+      // User already in room (from another tab/device)
+      const existingUser = roomUsers.get(userId)
+      
+      // Add this socket to the user's socket set
+      existingUser.sockets.add(socket.id)
+      
+      // Update user info (in case name/color changed)
+      existingUser.name = userName
+      existingUser.color = userColor
+      
+      console.log(`${userName} (${userId}) rejoined room ${room} with new socket: ${socket.id}`)
+    } else {
+      // New user joining room
+      roomUsers.set(userId, {
+        userId: userId,
+        name: userName,
+        color: userColor,
+        cursor: { x: 0, y: 0 },
+        sockets: new Set([socket.id]) // Track all sockets for this user
+      })
+      
+      console.log(`${userName} (${userId}) joined room: ${room}`)
+    }
+    
+    // Track socket to user mapping for disconnect handling
+    socketToUser.set(socket.id, { userId, room })
+    
+    // Send full users list to the joining socket
+    const usersList = Array.from(roomUsers.values()).map(user => ({
+      userId: user.userId,
+      name: user.name,
+      color: user.color,
+      cursor: user.cursor,
+      socketId: Array.from(user.sockets)[0], // Send first socket for compatibility
+      isActive: true
+    }))
+    
     socket.emit('users:list', usersList)
     
-    socket.to(room).emit('user:joined', {
-      socketId: socket.id,
-      userId: userId,
-      name: userName,
-      color: userColor,
-      cursor: { x: 0, y: 0 }
-    })
-    
-    console.log(`${userName} (${userId}) joined room: ${room}`)
+    // Only notify others if this is a NEW user (not just a new tab)
+    if (roomUsers.get(userId).sockets.size === 1) {
+      socket.to(room).emit('user:joined', {
+        userId: userId,
+        name: userName,
+        color: userColor,
+        cursor: { x: 0, y: 0 },
+        socketId: socket.id,
+        isActive: true
+      })
+    }
   })
 
   socket.on('stroke:add', ({ room, stroke }) => {
@@ -104,11 +139,17 @@ io.on('connection', (socket) => {
   })
 
   socket.on('cursor:update', ({ room, cursor }) => {
+    const mapping = socketToUser.get(socket.id)
+    if (!mapping) return
+    
     const roomUsers = rooms.get(room)
-    if (roomUsers && roomUsers.has(socket.id)) {
-      const user = roomUsers.get(socket.id)
+    if (roomUsers && roomUsers.has(mapping.userId)) {
+      const user = roomUsers.get(mapping.userId)
       user.cursor = cursor
+      
+      // Broadcast cursor update with userId instead of socketId
       socket.to(room).emit('cursor:updated', {
+        userId: mapping.userId,
         socketId: socket.id,
         cursor: cursor
       })
@@ -128,20 +169,39 @@ io.on('connection', (socket) => {
     onlineUsers.delete(socket.id)
     io.emit('online:count', onlineUsers.size)
     
-    rooms.forEach((roomUsers, room) => {
-      if (roomUsers.has(socket.id)) {
-        const user = roomUsers.get(socket.id)
-        roomUsers.delete(socket.id)
+    // Get user info from socket mapping
+    const mapping = socketToUser.get(socket.id)
+    if (!mapping) return
+    
+    const { userId, room } = mapping
+    const roomUsers = rooms.get(room)
+    
+    if (roomUsers && roomUsers.has(userId)) {
+      const user = roomUsers.get(userId)
+      
+      // Remove this socket from user's socket set
+      user.sockets.delete(socket.id)
+      
+      // ✅ FIX: Only remove user and notify if they have NO more sockets
+      if (user.sockets.size === 0) {
+        roomUsers.delete(userId)
         
+        // Notify others that user left
         io.to(room).emit('user:left', socket.id)
         
-        console.log(`${user.name} left room: ${room}`)
+        console.log(`${user.name} (${userId}) left room: ${room} (all tabs closed)`)
         
+        // Clean up empty room
         if (roomUsers.size === 0) {
           rooms.delete(room)
         }
+      } else {
+        console.log(`${user.name} (${userId}) closed one tab, still has ${user.sockets.size} active`)
       }
-    })
+    }
+    
+    // Clean up socket mapping
+    socketToUser.delete(socket.id)
   })
 })
 

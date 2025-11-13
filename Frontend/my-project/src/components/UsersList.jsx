@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { Users, Share2, X, Copy, Check, Mail } from 'lucide-react'
 import { useCollaboration, ACTIONS } from '../context/CollaborationContext.jsx'
 
@@ -6,7 +6,25 @@ const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
 
 export default function UsersList() {
   const { state, dispatch } = useCollaboration()
-  const activeUsers = state.users.filter(user => user.isActive)
+  
+  // ✅ FIX: Deduplicate users by userId before filtering
+  const uniqueUsers = useMemo(() => {
+    const userMap = new Map()
+    state.users.forEach(user => {
+      const id = user.userId || user.id
+      if (!userMap.has(id)) {
+        userMap.set(id, { ...user, userId: id })
+      } else {
+        // Keep the most recent version (update name if changed)
+        userMap.set(id, { ...userMap.get(id), ...user, userId: id })
+      }
+    })
+    return Array.from(userMap.values())
+  }, [state.users])
+  
+  const activeUsers = uniqueUsers.filter(user => user.isActive)
+  const inactiveUsers = uniqueUsers.filter(user => !user.isActive)
+  
   const [showInviteModal, setShowInviteModal] = useState(false)
   const [inviteEmail, setInviteEmail] = useState('')
   const [copied, setCopied] = useState(false)
@@ -56,7 +74,7 @@ export default function UsersList() {
 
       <div className="space-y-1.5 md:space-y-2 max-h-40 md:max-h-48 overflow-y-auto">
         {activeUsers.map(user => (
-          <div key={user.id} className="flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-lg md:rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 group">
+          <div key={user.userId} className="flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-lg md:rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 group">
             <div className="relative flex-shrink-0">
               <div className="w-4 h-4 md:w-5 md:h-5 rounded-full border-2 border-white dark:border-gray-300 shadow-lg" style={{ backgroundColor: user.color }} />
               <div className="absolute -top-0.5 -right-0.5 md:-top-1 md:-right-1 w-2 h-2 md:w-3 md:h-3 bg-green-400 rounded-full border border-white dark:border-gray-800 animate-pulse" />
@@ -65,16 +83,13 @@ export default function UsersList() {
               <span className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 truncate block">
                 {user.name}
               </span>
-              {user.id === 'user1' && (
-                <span className="ml-1 md:ml-2 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-1.5 md:px-2 py-0.5 rounded-full">You</span>
-              )}
             </div>
             <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-green-400 rounded-full animate-pulse flex-shrink-0" />
           </div>
         ))}
 
-        {state.users.filter(user => !user.isActive).map(user => (
-          <div key={user.id} className="flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-lg md:rounded-xl opacity-50">
+        {inactiveUsers.map(user => (
+          <div key={user.userId} className="flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-lg md:rounded-xl opacity-50">
             <div className="w-4 h-4 md:w-5 md:h-5 rounded-full border-2 border-gray-300 dark:border-gray-600 flex-shrink-0" style={{ backgroundColor: user.color }} />
             <span className="text-xs md:text-sm text-gray-500 dark:text-gray-400 truncate flex-1 min-w-0">{user.name}</span>
             <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-gray-300 dark:bg-gray-600 rounded-full flex-shrink-0" />
