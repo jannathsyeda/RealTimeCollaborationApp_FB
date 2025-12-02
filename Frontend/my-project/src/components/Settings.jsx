@@ -4,11 +4,11 @@ import {
   Sun, Moon, Monitor, Save 
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext.jsx'
-import { useTheme } from '../context/ThemeContext.jsx'
+import { useTheme } from '../context/ThemeContext.jsx' // ✅ ThemeContext
 
 export default function Settings({ isOpen, onClose }) {
   const { user, updateUser } = useAuth()
-  const { theme, toggleTheme } = useTheme()
+  const { theme, toggleTheme } = useTheme() // ✅ use ThemeContext
   const [settings, setSettings] = useState({
     color: user?.color || '#3b82f6',
     soundEnabled: user?.settings?.soundEnabled ?? true,
@@ -22,9 +22,9 @@ export default function Settings({ isOpen, onClose }) {
     '#8b5cf6', '#06b6d4', '#64748b', '#000000'
   ]
 
-  // ✅ FIX: Only sync with user when modal OPENS, not on every user update
+  // Sync with user on load
   useEffect(() => {
-    if (user && isOpen) {
+    if (user) {
       setSettings({
         color: user.color || '#3b82f6',
         soundEnabled: user.settings?.soundEnabled ?? true,
@@ -33,20 +33,21 @@ export default function Settings({ isOpen, onClose }) {
         autoSave: user.settings?.autoSave ?? true
       })
     }
-  }, [isOpen, user]) // Only runs when modal opens
+  }, [user])
 
-  // ✅ Apply theme immediately when changed
+  // ✅ Sync ThemeContext with local settings.theme
   useEffect(() => {
-    if (settings.theme === 'auto') {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      toggleTheme(prefersDark ? 'dark' : 'light')
-    } else {
-      toggleTheme(settings.theme)
+    if (settings.theme !== theme) {
+      if (settings.theme === 'auto') {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+        toggleTheme(prefersDark ? 'dark' : 'light')
+      } else {
+        toggleTheme(settings.theme)
+      }
     }
-  }, [settings.theme, toggleTheme])
+  }, [settings.theme])
 
   const handleSave = () => {
-    // Save to user context
     updateUser({
       color: settings.color,
       settings: {
@@ -56,15 +57,6 @@ export default function Settings({ isOpen, onClose }) {
         autoSave: settings.autoSave
       }
     })
-    
-    // Ensure theme is applied
-    if (settings.theme === 'auto') {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      toggleTheme(prefersDark ? 'dark' : 'light')
-    } else {
-      toggleTheme(settings.theme)
-    }
-    
     onClose()
   }
 
@@ -78,16 +70,16 @@ export default function Settings({ isOpen, onClose }) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 mt-60">
       <div 
         className="fixed inset-0 bg-black/50 backdrop-blur-sm" 
         onClick={onClose}
       />
-      <div className="relative bg-white dark:bg-gray-800 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <div className="relative bg-white dark:bg-gray-800 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-md max-h-[90vh] overflow-y-auto mt-15">
         
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-white">Settings</h2>
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl font-bold text-gray-800 dark:text-white">Settings</h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
@@ -97,7 +89,7 @@ export default function Settings({ isOpen, onClose }) {
         </div>
 
         {/* Content */}
-        <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
+        <div className="p-6 space-y-6">
           
           {/* 🎨 Color Settings */}
           <div>
@@ -105,24 +97,26 @@ export default function Settings({ isOpen, onClose }) {
               <Palette className="w-4 h-4 inline mr-2" />
               Your Color
             </label>
-            <div className="flex items-center gap-2 flex-wrap">
-              {presetColors.map(color => (
-                <button
-                  key={color}
-                  onClick={() => handleInputChange('color', color)}
-                  className={`w-9 h-9 sm:w-10 sm:h-10 rounded-lg border-2 transition-all duration-200 hover:scale-110 ${
-                    settings.color === color
-                      ? 'border-gray-800 dark:border-white shadow-lg scale-110'
-                      : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
-                  }`}
-                  style={{ backgroundColor: color }}
-                />
-              ))}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                {presetColors.map(color => (
+                  <button
+                    key={color}
+                    onClick={() => handleInputChange('color', color)}
+                    className={`w-8 h-8 rounded-lg border-2 transition-all duration-200 hover:scale-110 ${
+                      settings.color === color
+                        ? 'border-gray-800 dark:border-white shadow-lg scale-110'
+                        : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
+                    }`}
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
               <input
                 type="color"
                 value={settings.color}
                 onChange={(e) => handleInputChange('color', e.target.value)}
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg border-2 border-gray-300 dark:border-gray-600 cursor-pointer"
+                className="w-8 h-8 rounded-lg border-2 border-gray-300 dark:border-gray-600 cursor-pointer"
               />
             </div>
           </div>
@@ -141,16 +135,16 @@ export default function Settings({ isOpen, onClose }) {
                   : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
               }`}
             >
-              <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${
+              <div className={`w-4 h-4 rounded-full border-2 ${
                 settings.soundEnabled ? 'bg-green-500 border-green-500' : 'border-gray-300 dark:border-gray-600'
               }`} />
-              <span className="font-medium text-sm sm:text-base">
+              <span className="font-medium">
                 {settings.soundEnabled ? 'Enabled' : 'Disabled'}
               </span>
             </button>
           </div>
 
-          {/* 🌓 Theme Settings */}
+          {/* 🌓 Theme Settings (updated with ThemeContext) */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
               <Monitor className="w-4 h-4 inline mr-2" />
@@ -165,14 +159,14 @@ export default function Settings({ isOpen, onClose }) {
                 <button
                   key={opt.id}
                   onClick={() => handleInputChange('theme', opt.id)}
-                  className={`flex flex-col items-center gap-2 p-2.5 sm:p-3 rounded-xl border transition-all duration-200 ${
+                  className={`flex flex-col items-center gap-2 p-3 rounded-xl border transition-all duration-200 ${
                     settings.theme === opt.id
                       ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800'
                       : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
                 >
-                  <opt.icon className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span className="text-xs sm:text-sm font-medium">{opt.label}</span>
+                  <opt.icon className="w-5 h-5" />
+                  <span className="text-sm font-medium">{opt.label}</span>
                 </button>
               ))}
             </div>
@@ -191,10 +185,10 @@ export default function Settings({ isOpen, onClose }) {
                   : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
               }`}
             >
-              <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${
+              <div className={`w-4 h-4 rounded-full border-2 ${
                 settings.notifications ? 'bg-green-500 border-green-500' : 'border-gray-300 dark:border-gray-600'
               }`} />
-              <span className="font-medium text-sm sm:text-base">
+              <span className="font-medium">
                 {settings.notifications ? 'Enabled' : 'Disabled'}
               </span>
             </button>
@@ -213,28 +207,31 @@ export default function Settings({ isOpen, onClose }) {
                   : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
               }`}
             >
-              <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${
+              <div className={`w-4 h-4 rounded-full border-2 ${
                 settings.autoSave ? 'bg-green-500 border-green-500' : 'border-gray-300 dark:border-gray-600'
               }`} />
-              <span className="font-medium text-sm sm:text-base">
+              <span className="font-medium">
                 {settings.autoSave ? 'Enabled' : 'Disabled'}
               </span>
             </button>
           </div>
 
+          {/* 🛠 Debug block */}
+       
+
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
           <button
             onClick={onClose}
-            className="px-3 sm:px-4 py-2 text-sm sm:text-base text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white transition-colors"
+            className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            className="flex items-center gap-2 px-4 sm:px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-colors font-medium text-sm sm:text-base"
+            className="flex items-center gap-2 px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-colors font-medium"
           >
             <Save className="w-4 h-4" />
             Save Settings
