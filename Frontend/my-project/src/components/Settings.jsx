@@ -4,11 +4,11 @@ import {
   Sun, Moon, Monitor, Save 
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext.jsx'
-import { useTheme } from '../context/ThemeContext.jsx' // ✅ ThemeContext
+import { useTheme } from '../context/ThemeContext.jsx'
 
 export default function Settings({ isOpen, onClose }) {
   const { user, updateUser } = useAuth()
-  const { theme, toggleTheme } = useTheme() // ✅ use ThemeContext
+  const { theme, toggleTheme } = useTheme()
   const [settings, setSettings] = useState({
     color: user?.color || '#3b82f6',
     soundEnabled: user?.settings?.soundEnabled ?? true,
@@ -22,9 +22,9 @@ export default function Settings({ isOpen, onClose }) {
     '#8b5cf6', '#06b6d4', '#64748b', '#000000'
   ]
 
-  // Sync with user on load
+  // ✅ FIX: Only sync with user when modal OPENS, not on every user update
   useEffect(() => {
-    if (user) {
+    if (user && isOpen) {
       setSettings({
         color: user.color || '#3b82f6',
         soundEnabled: user.settings?.soundEnabled ?? true,
@@ -33,21 +33,20 @@ export default function Settings({ isOpen, onClose }) {
         autoSave: user.settings?.autoSave ?? true
       })
     }
-  }, [user])
+  }, [isOpen, user]) // Only runs when modal opens
 
-  // ✅ Sync ThemeContext with local settings.theme
+  // ✅ Apply theme immediately when changed
   useEffect(() => {
-    if (settings.theme !== theme) {
-      if (settings.theme === 'auto') {
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-        toggleTheme(prefersDark ? 'dark' : 'light')
-      } else {
-        toggleTheme(settings.theme)
-      }
+    if (settings.theme === 'auto') {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+      toggleTheme(prefersDark ? 'dark' : 'light')
+    } else {
+      toggleTheme(settings.theme)
     }
-  }, [settings.theme])
+  }, [settings.theme, toggleTheme])
 
   const handleSave = () => {
+    // Save to user context
     updateUser({
       color: settings.color,
       settings: {
@@ -57,6 +56,15 @@ export default function Settings({ isOpen, onClose }) {
         autoSave: settings.autoSave
       }
     })
+    
+    // Ensure theme is applied
+    if (settings.theme === 'auto') {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+      toggleTheme(prefersDark ? 'dark' : 'light')
+    } else {
+      toggleTheme(settings.theme)
+    }
+    
     onClose()
   }
 
@@ -70,12 +78,12 @@ export default function Settings({ isOpen, onClose }) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-10">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div 
         className="fixed inset-0 bg-black/50 backdrop-blur-sm" 
         onClick={onClose}
       />
-      <div className="relative bg-white dark:bg-gray-800 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-md max-h-[90vh] overflow-y-auto my-auto">
+      <div className="relative bg-white dark:bg-gray-800 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-md max-h-[90vh] overflow-y-auto">
         
         {/* Header */}
         <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
@@ -142,7 +150,7 @@ export default function Settings({ isOpen, onClose }) {
             </button>
           </div>
 
-          {/* 🌓 Theme Settings (updated with ThemeContext) */}
+          {/* 🌓 Theme Settings */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
               <Monitor className="w-4 h-4 inline mr-2" />
@@ -213,9 +221,6 @@ export default function Settings({ isOpen, onClose }) {
               </span>
             </button>
           </div>
-
-          {/* 🛠 Debug block */}
-       
 
         </div>
 
